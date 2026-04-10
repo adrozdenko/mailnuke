@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 /* ------------------------------------------------------------------ */
 /*  Animated counter hook                                              */
@@ -194,12 +195,12 @@ export default function LandingPage() {
           >
             FAQ
           </a>
-          <Link
-            href="/dashboard"
-            className="text-sm px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all"
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            className="text-sm px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all cursor-pointer"
           >
             Sign In
-          </Link>
+          </button>
         </div>
       </nav>
 
@@ -240,17 +241,16 @@ export default function LandingPage() {
         </div>
 
         {/* CTA */}
-        <Link
-          href="/dashboard"
-          className="group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-orange-600 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,46,46,0.3)]"
+        <button
+          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+          className="group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-orange-600 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,46,46,0.3)] cursor-pointer"
         >
           <span>Nuke My Inbox</span>
           <span className="text-xl group-hover:translate-x-1 transition-transform">
             →
           </span>
-          {/* Glow ring */}
           <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 opacity-0 group-hover:opacity-20 blur-xl transition-opacity" />
-        </Link>
+        </button>
 
         <p className="text-white/20 text-xs mt-4">
           Free tier available. No credit card required.
