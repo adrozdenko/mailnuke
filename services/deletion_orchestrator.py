@@ -3,14 +3,15 @@
 
 import asyncio
 import time
-from typing import Dict, List
+from typing import Dict, List, Union
 from datetime import datetime
 
 from services.gmail_client import GmailClient
 from services.query_builder import QueryBuilder
 from services.email_deleter import EmailDeleter
 from services.performance_tracker import PerformanceTracker
-from utils.display_helpers import FilterDisplayHelper, ProgressDisplayHelper
+from utils import ui
+from models.filter_config import FilterConfig
 from constants import (
     EMAILS_PER_CHUNK, MAX_CONCURRENT_TASKS, EMAILS_PER_TASK,
     STANDARD_DELAY, ERROR_RECOVERY_DELAY
@@ -19,29 +20,36 @@ from constants import (
 
 class DeletionOrchestrator:
     """Orchestrates the email deletion process"""
-    
-    def __init__(self, filters: Dict):
-        self.filters = filters
+
+    def __init__(self, filters: Union[FilterConfig, Dict]):
+        if isinstance(filters, dict):
+            self.filters = FilterConfig.from_dict(filters)
+        else:
+            self.filters = filters
         self.gmail_client = GmailClient()
-        self.query_builder = QueryBuilder(filters)
+        self.query_builder = QueryBuilder(self.filters)
         self.email_deleter = EmailDeleter(self.gmail_client)
         self.performance_tracker = PerformanceTracker()
-        self.display_helper = FilterDisplayHelper()
     
-    async def execute_deletion(self) -> dict:
+    async def execute_deletion(self, dry_run=False) -> dict:
         """Execute the complete deletion process"""
         self._print_header()
-        
+
         query = self.query_builder.build_query()
         self._print_query_info(query)
-        
+
         initial_count = await self._get_initial_count(query)
+
+        if dry_run:
+            print(f"\n[DRY RUN] Would process ~{initial_count} emails. No changes made.")
+            return {"total_deleted": 0, "dry_run": True, "estimated": initial_count}
+
         self._print_performance_settings()
-        
+
         self.performance_tracker.start_tracking()
-        
+
         result = await self._run_deletion_loop(query, initial_count)
-        
+
         return self._finalize_deletion()
     
     def _print_header(self):
@@ -53,9 +61,9 @@ class DeletionOrchestrator:
     
     def _print_query_info(self, query: str):
         """Print query and filter information"""
-        print(f"📧 Gmail Query: {query}")
+        print(f"Gmail Query: {query}")
         print()
-        self.display_helper.print_filter_summary(self.filters)
+        ui.print_filter_summary(self.filters)
     
     async def _get_initial_count(self, query: str) -> int:
         """Get initial email count estimate"""
@@ -172,7 +180,7 @@ class DeletionOrchestrator:
         
         self.performance_tracker.record_batch_performance(email_count, duration)
         
-        ProgressDisplayHelper.print_batch_stats(
+        ui.print_batch_stats(
             batch_number, email_count, duration, current_rate,
             self.performance_tracker.stats.total_deleted,
             self.performance_tracker.get_memory_usage_mb()
@@ -186,7 +194,7 @@ class DeletionOrchestrator:
         if self.email_deleter.rate_limit_counter > 0:
             print(f"   ⚠️  Rate limits hit: {self.email_deleter.rate_limit_counter} times")
         
-        ProgressDisplayHelper.print_progress_bar(
+        ui.print_progress_bar(
             self.performance_tracker.stats.total_deleted, initial_count
         )
         
