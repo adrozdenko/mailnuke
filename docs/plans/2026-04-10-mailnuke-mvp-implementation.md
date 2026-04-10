@@ -28,8 +28,9 @@ Each milestone is independently deployable. Order matters — each builds on the
 **Verify:** Sign in works, user + token in DB
 
 ### M4: Dashboard Shell + Preset Selector
+**UI:** shadcn/ui (sidebar, cards, layout — functional app shell)
 **Files:** frontend/app/(app)/dashboard/, backend/app/routes/presets.py
-**What:** Sidebar + main area layout. GET /api/presets returns 6 FilterConfig presets. Preset cards with selection state.
+**What:** Sidebar + main area layout using shadcn/ui. GET /api/presets returns 6 FilterConfig presets. Preset cards with name, description, age, filter details. Selection highlights active preset. Store selected preset in client state.
 **Verify:** Dashboard loads, presets display, selection works
 
 ### M5: Dry Run Preview
@@ -38,9 +39,10 @@ Each milestone is independently deployable. Order matters — each builds on the
 **Verify:** Preview count matches Gmail, free tier limit works
 
 ### M6: Live Deletion with WebSocket Progress
-**Files:** backend/app/routes/cleanup_ws.py, frontend/components/NukeProgress.tsx
-**What:** WebSocket endpoint ws:///api/cleanup/run. Runs DeletionOrchestrator with progress callback sending JSON frames. Frontend live progress bar + emails/sec counter. Store job in cleanup_jobs table. Increment monthly usage.
-**Verify:** Live updates in browser, job in DB
+**UI:** `frontend-design` skill for the Nuke button + live progress animation (the "wow" moment), shadcn/ui for the rest
+**Files:** backend/app/routes/cleanup_ws.py, frontend/components/NukeButton.tsx, frontend/components/NukeProgress.tsx
+**What:** WebSocket endpoint ws:///api/cleanup/run. Runs DeletionOrchestrator with progress callback sending JSON frames. Use `frontend-design` skill to build a visually distinctive Nuke button (big, red, satisfying press animation) and live progress experience (animated counter, real-time emails/sec, particle effects or similar). shadcn/ui for the surrounding layout. Store job in cleanup_jobs table. Increment monthly usage.
+**Verify:** Live updates in browser, the nuke experience feels visceral, job in DB
 
 ### M7: Stripe Billing
 **Files:** backend/app/routes/billing.py, frontend/app/(marketing)/pricing/
